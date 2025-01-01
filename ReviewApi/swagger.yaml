@@ -1,0 +1,227 @@
+swagger: "2.0"
+info:
+  title: "Review Microservice"
+  description: |
+    This microservice is a part of our Intern playground API collection. Its intended
+    function is to store reviews of products, and be able to search for reviews based
+    on the author of the review and/or the product the review is written about.
+  contact:
+    name: "Martin Sándor"
+    email: "martin-tibor.sandor@capgemini.com"
+  version: "1.0"
+schemes: ["http"]
+tags:
+  - name: System
+    description: "APIs for system-wide operations"
+  - name: Database
+    description: "APIs that interact with the Reviews database"
+produces:
+        - "application/json"
+        - "application/xml"
+paths:
+  /healthz:
+    get:
+      description: "This operation can be used as a liveness probe to check if the system is alive"
+      tags:
+        - System
+      responses:
+        204:
+          description: "The service is available"
+        500:
+          $ref: "#/responses/InternalServerErrorResponse"
+  /reviews:
+    get:
+      description: "Returns all reviews in the database"
+      tags:
+        - Database
+      parameters:
+        - $ref: "#/parameters/userIdParam"
+        - $ref: "#/parameters/productIdParam"
+      responses:
+        200:
+          $ref: "#/responses/GetMultipleReviewsResponse"
+          
+    post:
+      description: "Submit a new review"
+      tags:
+        - Database
+      parameters:
+        - $ref: "#/parameters/uploadReviewParam"
+      responses:
+        204:
+          description: "Response if uploading the Review object to the database was successful"
+
+  /reviews/{reviewId}:
+    get:
+      description: "Returns a specific review ID"
+      tags:
+        - Database
+      parameters:
+        - $ref: "#/parameters/reviewIdParam"
+      responses:
+        200:
+          $ref: "#/responses/GetSpecificReviewResponse"
+        400:
+          $ref: "#/responses/ReviewIdMalformedResponse"
+        404:
+          $ref: "#/responses/ReviewNotFoundResponse"
+    put:
+      description: "Update an existing review"
+      tags:
+        - Database
+      parameters:
+        - $ref: "#/parameters/reviewIdParam"
+        - $ref: "#/parameters/updateReviewParam"
+      responses:  
+        204:
+          $ref: "#/responses/UpdateReviewResponse"
+        400:
+          $ref: "#/responses/ReviewIdMalformedResponse"
+        404:
+          $ref: "#/responses/ReviewNotFoundResponse"
+    delete:
+      description: "Delete an existing review"
+      parameters:
+        - $ref: "#/parameters/reviewIdParam"
+      responses:  
+        204:
+          $ref: "#/responses/DeleteReviewResponse"
+        400:
+          $ref: "#/responses/ReviewIdMalformedResponse"
+        404:
+          $ref: "#/responses/ReviewNotFoundResponse"
+          
+
+responses:
+  GetMultipleReviewsResponse:
+    description: "Response array of type Review in successful case"
+    schema:
+      type: array
+      description: "An array of all reviews in the database that match the given queries"
+      items:
+        $ref: "#/definitions/ReviewDto"
+        
+  GetSpecificReviewResponse:
+    description: "Response object of type Review in successful case"
+    schema: 
+      $ref: "#/definitions/ReviewDto"
+      
+  UpdateReviewResponse:
+    description: "The Review object in the database has been successfully updated"
+    
+  DeleteReviewResponse:
+    description: "The entry with the specified ID has been successfully deleted from the database"
+    
+  ReviewIdMalformedResponse:
+    description: "Response in case the reviewId is malformed, such as a negative number. Possible error codes: InvalidId"
+    schema:
+      $ref: "#/definitions/GenericErrorDto"
+    
+  ReviewNotFoundResponse:
+    description: "Response when no element exists in the database with the given ID. Possible error codes: ReviewNotFound"
+    schema:
+      $ref: "#/definitions/GenericErrorDto"
+    
+  InternalServerErrorResponse:
+    description: "Response when something unexpected occured server-side. Possible error codes: GenericError"
+    schema:
+      $ref: "#/definitions/GenericErrorDto"
+    
+  
+parameters:
+  reviewIdParam:
+    name: reviewId
+    in: path
+    type: integer
+    required: true
+    description: "Numeric ID of the review to get"
+    
+  updateReviewParam:
+    name: reviewToUpdate
+    in: body
+    schema: 
+      $ref: "#/definitions/ReviewForUpdateDto"
+    required: true
+    description: "The new values of the Review object"
+  
+  userIdParam:
+    name: userId
+    in: query
+    type: integer
+    required: false
+    description: "Numeric ID of the author whose reviews we are looking for"
+  
+  productIdParam:
+    name: productId
+    in: query
+    type: integer
+    required: false
+    description: "Numeric ID of the product about which we want reviews"
+    
+  uploadReviewParam:
+    in: body
+    name: reviewToUpload
+    schema:
+      $ref: "#/definitions/ReviewDto"
+    required: true
+    description: "The Review object we want to upload"
+  
+  
+definitions:
+  ReviewDto:
+    type: object
+    description: "Represents a review of a product"
+    properties:
+      reviewId:
+        type: integer
+        description: "The primary key of the review"
+        example: 1
+      userId:
+        type: integer
+        description: "The Id of the author of the review. Functionally a foreign key, but since users are stored in a different database, current implementation is TBD"
+        example: 15
+      productId:
+        type: integer
+        description: "The Id of the product being reviewed. Functionally a foreign key, but since products are stored in a different database, current implementation is TBD"
+        example: 420
+      review:
+        type: string
+        description: "The review contained in the review object"
+        example: "The phone works fine, but the price seems overbearing given how little it improves on the previous model. Also, the camera seems to turn on sometimes by itself, is this something to worry about?"
+  ReviewForUpdateDto:
+    type: object
+    description: "Represents a review object without the primary key, used to update an existing entry in the database"
+    properties:
+      userId:
+        type: integer
+        description: "The Id of the author of the review. Functionally a foreign key, but since users are stored in a different database, current implementation is TBD"
+        example: 15
+      productId:
+        type: integer
+        description: "The Id of the product being reviewed. Functionally a foreign key, but since products are stored in a different database, current implementation is TBD"
+        example: 420
+      review:
+        type: string
+        description: "The review contained in the review object"
+        example: "The phone works fine, but the price seems overbearing given how little it improves on the previous model. Also, the camera seems to turn on sometimes by itself, is this something to worry about?"
+  GenericErrorDto:
+    type: object
+    description: "Provides information of why the request has failed"
+    properties:
+      ErrorCode:
+        type: string
+        enum:
+          - GenericError
+          - ReviewNotFound
+          - InvalidId
+        description: |
+          Represents an error code describing the problem:
+            - GenericError: Represents an unknown error
+            - ReviewNotFound: No review was found with the given ID
+            - InvalidId: The review ID is malformed
+        example: "GenericError"
+      Message:
+        type: string
+        description: "A human readable explanation of the problem."
+        example: "An unknown error occurred."        
+        

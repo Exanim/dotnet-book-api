@@ -1,0 +1,215 @@
+{
+  "openapi" : "3.0.1",
+  "info" : {
+    "description" : "A service to store books and request data about them.",
+    "title" : "Books Microservice",
+    "version" : "0.0.1"
+  },
+  "servers" : [ {
+    "url" : "/"
+  } ],
+  "tags" : [ {
+    "description" : "Requests about the stored books",
+    "name" : "Book"
+  } ],
+  "paths" : {
+    "/books" : {
+      "get" : {
+        "description" : "Gives back a list of stored books",
+        "operationId" : "GetBooks",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "items" : {
+                    "$ref" : "#/components/schemas/Book"
+                  },
+                  "type" : "array"
+                }
+              }
+            },
+            "description" : "A sucsessful response that lists the stored books"
+          }
+        },
+        "tags" : [ "Book" ]
+      }
+    },
+    "/book" : {
+      "post" : {
+        "description" : "Adds a book to the database",
+        "operationId" : "PostBook",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "type" : "string"
+              }
+            }
+          },
+          "description" : "The title of the book",
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : { },
+            "description" : "The book with the given title is stored in the database"
+          }
+        },
+        "tags" : [ "Book" ],
+        "x-codegen-request-body-name" : "title"
+      }
+    },
+    "/book/{Id}" : {
+      "delete" : {
+        "description" : "Deletes a book from the database",
+        "operationId" : "DeleteBookById",
+        "parameters" : [ {
+          "description" : "The id of the book",
+          "in" : "path",
+          "name" : "Id",
+          "required" : true,
+          "schema" : {
+            "format" : "int32",
+            "type" : "integer"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "content" : { },
+            "description" : "The book with the given id is deleted"
+          },
+          "404" : {
+            "content" : { },
+            "description" : "The Book with the given id is not found"
+          }
+        },
+        "tags" : [ "Book" ]
+      },
+      "get" : {
+        "description" : "Gives back a stored book by it's id",
+        "operationId" : "GetBookById",
+        "parameters" : [ {
+          "description" : "The id of the book",
+          "in" : "path",
+          "name" : "Id",
+          "required" : true,
+          "schema" : {
+            "format" : "int32",
+            "type" : "integer"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Book"
+                }
+              }
+            },
+            "description" : "A sucsessful response that gives back a book by id"
+          },
+          "404" : {
+            "content" : { },
+            "description" : "The Book with the given id is not found"
+          }
+        },
+        "tags" : [ "Book" ]
+      },
+      "put" : {
+        "description" : "Updates a book by it's id",
+        "operationId" : "PatchBookById",
+        "parameters" : [ {
+          "description" : "The id of the book",
+          "in" : "path",
+          "name" : "Id",
+          "required" : true,
+          "schema" : {
+            "format" : "int32",
+            "type" : "integer"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "type" : "string"
+              }
+            }
+          },
+          "description" : "The title of the book",
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : { },
+            "description" : "The book with the given id is updated"
+          },
+          "404" : {
+            "content" : { },
+            "description" : "The Book with the given id is not found"
+          }
+        },
+        "tags" : [ "Book" ],
+        "x-codegen-request-body-name" : "title"
+      }
+    }
+  },
+  "components" : {
+    "parameters" : {
+      "id" : {
+        "description" : "The id of the book",
+        "in" : "path",
+        "name" : "Id",
+        "required" : true,
+        "schema" : {
+          "format" : "int32",
+          "type" : "integer"
+        }
+      }
+    },
+    "requestBodies" : {
+      "title" : {
+        "content" : {
+          "application/json" : {
+            "schema" : {
+              "type" : "string"
+            }
+          }
+        },
+        "description" : "The title of the book",
+        "required" : true
+      }
+    },
+    "responses" : {
+      "BookNotFound" : {
+        "content" : { },
+        "description" : "The Book with the given id is not found"
+      }
+    },
+    "schemas" : {
+      "Book" : {
+        "description" : "A book from the database",
+        "example" : {
+          "id" : 0,
+          "title" : "title"
+        },
+        "properties" : {
+          "id" : {
+            "description" : "The id of the book",
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "title" : {
+            "description" : "The title of the book",
+            "type" : "string"
+          }
+        },
+        "required" : [ "id", "title" ],
+        "type" : "object"
+      }
+    }
+  },
+  "x-original-swagger-version" : "2.0"
+}
